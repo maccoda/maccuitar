@@ -1,5 +1,10 @@
 # Maccuitar
 
+
+
+[![pipeline status](https://gitlab.com/maccoda/maccuitar/badges/main/pipeline.svg)](https://gitlab.com/maccoda/maccuitar/-/commits/main)
+
+
 Little project to practice chord changes and an opportunity to play with web
 assembly.
 
