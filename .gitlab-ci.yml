@@ -33,3 +33,13 @@ github:mirror:
     - chmod u+x askpass
     - export GIT_ASKPASS="./askpass"
     - git push $GITHUB_REPO_URL +refs/remotes/origin/*:refs/heads/* +refs/tags/*:refs/tags/*
+  only:
+    - main
+
+pages:
+  script:
+    - cargo install wasm-pack
+    - wasm-pack build --target web --out-name wasm --out-dir ./static
+  artifacts:
+    paths:
+      - static
