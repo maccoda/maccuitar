@@ -22,3 +22,14 @@ test:cargo:
   script:
     - rustc --version && cargo --version  # Print version info for debugging
     - cargo test --workspace --verbose
+
+github:mirror:
+  variables:
+    GIT_STRATEGY: clone
+  script:
+    - git status
+    - git log --oneline
+    - echo "exec echo $GITHUB_API_TOKEN" > askpass
+    - chmod u+x askpass
+    - export GIT_ASKPASS="./askpass"
+    - git push $GITHUB_REPO_URL +refs/remotes/origin/*:refs/heads/* +refs/tags/*:refs/tags/*
