@@ -17,6 +17,10 @@ image: "rust:latest"
 #   - apt-get update -yqq
 #   - apt-get install -yqq --no-install-recommends build-essential
 
+cache:
+  paths:
+    - ~/.cargo
+
 # Use cargo to test the project
 test:cargo:
   script:
@@ -40,6 +44,7 @@ pages:
   script:
     - cargo install wasm-pack
     - wasm-pack build --target web --out-name wasm --out-dir ./static
+    - cp -r static public
   artifacts:
     paths:
-      - static
+      - public
