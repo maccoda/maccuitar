@@ -1,25 +1,69 @@
+use rand::distributions::{Distribution, Uniform};
+use rand::SeedableRng;
+use std::time::Duration;
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
+use yew::services::{IntervalService, Task};
 
-struct Model {
+struct ChordGenerator {
+    rng: rand::rngs::StdRng,
+    distribution: Uniform<usize>,
+}
+
+impl ChordGenerator {
+    fn new() -> ChordGenerator {
+        ChordGenerator {
+            rng: rand::rngs::StdRng::seed_from_u64(10),
+            distribution: Uniform::from(0..ChordDisplay::CHORDS.len()),
+        }
+    }
+
+    fn next_index(&mut self) -> usize {
+        self.distribution.sample(&mut self.rng)
+    }
+}
+
+struct ChordDisplay {
     link: ComponentLink<Self>,
-    value: i64,
+    chord_index: usize,
+    timer_task: Option<Box<dyn Task>>,
+    generator: ChordGenerator,
+}
+
+impl ChordDisplay {
+    const CHORDS: &'static [&'static str] = &["A", "B", "C", "D", "E", "F", "G"];
+    fn next_chord(&mut self) -> () {
+        self.chord_index = self.generator.next_index();
+    }
 }
 
 enum Msg {
-    AddOne,
+    StartTimer,
+    Tick,
 }
 
-impl Component for Model {
+impl Component for ChordDisplay {
     type Message = Msg;
     type Properties = ();
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { link, value: 0 }
+        Self {
+            link,
+            chord_index: 0,
+            timer_task: None,
+            generator: ChordGenerator::new(),
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::AddOne => self.value += 1,
+            Msg::StartTimer => {
+                let handle = IntervalService::spawn(
+                    Duration::from_secs(2),
+                    self.link.callback(|_| Msg::Tick),
+                );
+                self.timer_task = Some(Box::new(handle))
+            }
+            Msg::Tick => self.next_chord(),
         }
         true
     }
@@ -34,8 +78,8 @@ impl Component for Model {
     fn view(&self) -> Html {
         html! {
             <div>
-                <button onclick=self.link.callback(|_| Msg::AddOne)>{ "+1" }</button>
-                <p>{ self.value }</p>
+                <button onclick=self.link.callback(|_| Msg::StartTimer)>{ "Start chord changes" }</button>
+                <h1>{ ChordDisplay::CHORDS[self.chord_index] }</h1>
             </div>
         }
     }
@@ -43,5 +87,5 @@ impl Component for Model {
 
 #[wasm_bindgen(start)]
 pub fn run_app() {
-    App::<Model>::new().mount_to_body();
+    App::<ChordDisplay>::new().mount_to_body();
 }
